@@ -211,7 +211,6 @@ target_compile_options(fvdb PRIVATE
             -Wno-unknown-pragmas
             -Werror=all-warnings
             -Wall
-            -Werror
             -fvisibility=default
         >
         $<$<CXX_COMPILER_ID:MSVC>:
