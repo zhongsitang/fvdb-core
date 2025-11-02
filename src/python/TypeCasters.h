@@ -14,7 +14,14 @@
 namespace pybind11 {
 namespace detail {
 
-const static inline pybind11::module TORCH_MODULE = py::module_::import("torch");
+inline pybind11::module torch_module() {
+    try {
+        return py::module_::import("torch");
+    } catch (const std::exception &e) {
+        PyErr_SetString(PyExc_ImportError, e.what());
+        return py::module_();
+    }
+}
 
 // Already defined in upstream pytorch: https://github.com/pytorch/pytorch/pull/126865
 // (starting from version 2.4)
@@ -39,7 +46,7 @@ template <> struct type_caster<torch::ScalarType> : public type_caster_base<torc
 
     static handle
     cast(const at::ScalarType &src, return_value_policy policy, handle parent) {
-        auto result = TORCH_MODULE.attr(fvdb::detail::TorchScalarTypeToStr(src).c_str());
+        auto result = torch_module().attr(fvdb::detail::TorchScalarTypeToStr(src).c_str());
         Py_INCREF(result.ptr());
         return result;
     }

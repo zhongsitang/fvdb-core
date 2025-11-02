@@ -168,53 +168,63 @@ set_target_properties(
     CUDA_STANDARD 20
     CUDA_STANDARD_REQUIRED ON
     POSITION_INDEPENDENT_CODE ON
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
     INTERFACE_POSITION_INDEPENDENT_CODE ON)
-
-message(STATUS "fvdb: TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
 
 target_include_directories(fvdb PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${nanovdb_SOURCE_DIR}/nanovdb
-    ${TORCH_INCLUDE_DIRS}
     ${nvtx3_SOURCE_DIR}/include
     ${NANOVDB_EDITOR_INCLUDE_DIR})
 target_include_directories(fvdb PRIVATE
-    ${TORCH_SOURCE_INCLUDE_DIRS}
     ${tinyply_SOURCE_DIR}/source)
-
-# Needed by Torch for CUDA extensions
-set(TORCH_CUDA_COMMON_FLAGS
-    "-D__CUDA_NO_HALF_OPERATORS__"
-    "-D__CUDA_NO_HALF_CONVERSIONS__"
-    "-D__CUDA_NO_BFLOAT16_CONVERSIONS__"
-    "-D__CUDA_NO_HALF2_OPERATORS__"
-    "--expt-relaxed-constexpr")
 
 target_compile_options(fvdb PRIVATE
     $<$<AND:$<CONFIG:DEBUG>,$<COMPILE_LANGUAGE:CUDA>>:-G -Xcompiler=-O0>
     $<$<AND:$<CONFIG:DEBUG>,$<COMPILE_LANGUAGE:CXX>>:-O0>
     $<$<COMPILE_LANGUAGE:CXX>:
-    "-Wno-unknown-pragmas"
-    "-Wno-class-memaccess"
-    "-fdiagnostics-color=always"
-    "-DNANOVDB_USE_BLOSC"
-    "-fvisibility=default"
-    "-Wall"
-    "-Werror"
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+            -Wno-unknown-pragmas
+            -Wno-class-memaccess
+            -fdiagnostics-color=always
+            -DNANOVDB_USE_BLOSC
+            -fvisibility=default
+            -Wall
+            -Werror
+        >
+        $<$<CXX_COMPILER_ID:MSVC>:
+            /DNANOVDB_USE_BLOSC
+            /DNOMINMAX
+            /D_CRT_SECURE_NO_WARNINGS
+            /FIport.h
+            /Zc:__cplusplus
+        >
     >
     $<$<COMPILE_LANGUAGE:CUDA>:
-    "-Wno-unknown-pragmas"
-    "--extended-lambda"
-    "-Xfatbin=-compress-all"
-    "-fvisibility=default"
-    "-Werror=all-warnings"
-    "--threads=$ENV{NVCC_THREADS}"
-    "-Xcompiler=-Wall,-Werror"
-    ${TORCH_CUDA_COMMON_FLAGS}
-    >)
+        --extended-lambda
+        -Xfatbin=-compress-all
+        --diag-suppress=221
+        --diag-suppress=177
+        --threads=$ENV{NVCC_THREADS}
+
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+            -Wno-unknown-pragmas
+            -Werror=all-warnings
+            -Wall
+            -Werror
+            -fvisibility=default
+        >
+        $<$<CXX_COMPILER_ID:MSVC>:
+            -D__asm__=asm
+            -D__volatile__=volatile
+            -include Port.h
+            -Xcompiler=/Zc:__cplusplus
+        >
+    >
+)
 
 target_link_libraries(fvdb PRIVATE
-    ${TORCH_LIBRARIES} tinyply cudnn_frontend cudnn cutlass blosc::blosc)
+    Torch::Torch tinyply cudnn_frontend cudnn cutlass cublas blosc::blosc)
 
 # Strip symbols in non-Debug builds to reduce wheel size
 if(NOT (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") AND FVDB_STRIP_SYMBOLS)

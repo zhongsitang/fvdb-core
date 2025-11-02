@@ -40,7 +40,7 @@ target_include_directories(fvdb_test_utils
 # Link dependencies PRIVATE as they are implementation details
 target_link_libraries(fvdb_test_utils PRIVATE
   PNG::PNG
-  ${TORCH_LIBRARIES} # Link utils against Torch
+  Torch::Torch
 )
 # --- End Test Utilities Library Definition ---
 
@@ -68,6 +68,7 @@ function(ConfigureTest CMAKE_TEST_NAME)
   target_include_directories(${CMAKE_TEST_NAME}_obj PRIVATE
     ${CMAKE_SOURCE_DIR}/src # Include src for finding <tests/utils/...>
     $<TARGET_PROPERTY:fvdb,INTERFACE_INCLUDE_DIRECTORIES> # Get includes exposed by fvdb
+    $<TARGET_PROPERTY:Torch::Torch,INTERFACE_INCLUDE_DIRECTORIES> # Get includes exposed by Torch::Torch
     $<TARGET_PROPERTY:GTest::gtest,INTERFACE_INCLUDE_DIRECTORIES> # Get includes exposed by GTest::gtest
     $<TARGET_PROPERTY:GTest::gtest_main,INTERFACE_INCLUDE_DIRECTORIES> # Get includes exposed by GTest::gtest_main
     ${CUDAToolkit_INCLUDE_DIRS}
@@ -76,19 +77,37 @@ function(ConfigureTest CMAKE_TEST_NAME)
   )
 
   target_compile_options(${CMAKE_TEST_NAME}_obj PRIVATE
-    $<$<AND:$<CONFIG:DEBUG>,$<COMPILE_LANGUAGE:CUDA>>:-G -Xcompiler=-O0>
-    $<$<AND:$<CONFIG:DEBUG>,$<COMPILE_LANGUAGE:CXX>>:-O0>
-    $<$<COMPILE_LANGUAGE:CXX>:
-    "-Wall"
-    "-Werror"
-    >
-    $<$<COMPILE_LANGUAGE:CUDA>:
-    "--extended-lambda"
-    "-Xfatbin=-compress-all"
-    "-Werror=all-warnings"
-    "-Xcompiler=-Wall,-Werror"
-    "-diag-suppress=3189" # Suppress warnings about module keyword in PyTorch code
-    >)
+      $<$<AND:$<CONFIG:DEBUG>,$<COMPILE_LANGUAGE:CUDA>>:-G -Xcompiler=-O0>
+      $<$<AND:$<CONFIG:DEBUG>,$<COMPILE_LANGUAGE:CXX>>:-O0>
+      $<$<COMPILE_LANGUAGE:CXX>:
+          $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+          -Werror=all-warnings
+              -Wall
+              -Werror
+          >
+          $<$<CXX_COMPILER_ID:MSVC>:
+              /DNOMINMAX
+              /D_CRT_SECURE_NO_WARNINGS
+              /FIport.h
+          >
+      >
+      $<$<COMPILE_LANGUAGE:CUDA>:
+          --extended-lambda
+          -Xfatbin=-compress-all
+          --diag-suppress=221
+          --diag-suppress=177
+          --threads=$ENV{NVCC_THREADS}
+
+          $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+              -Werror=all-warnings
+              -Wall
+              -Werror
+          >
+          $<$<CXX_COMPILER_ID:MSVC>:
+              -include Port.h
+          >
+      >
+  )
 
   target_compile_definitions(${CMAKE_TEST_NAME}_obj PRIVATE
     "FVDB_EXTERNAL_TEST_DATA_PATH=\"${FVDB_TEST_DATA_DIR}\"")

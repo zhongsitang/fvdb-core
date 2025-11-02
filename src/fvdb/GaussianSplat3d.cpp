@@ -21,6 +21,13 @@
 #include <c10/core/ScalarType.h>
 #include <torch/csrc/autograd/generated/variable_factories.h>
 
+#ifdef near
+#undef near
+#endif
+#ifdef far
+#undef far
+#endif
+
 namespace fvdb {
 
 using RenderMode     = fvdb::detail::ops::RenderSettings::RenderMode;

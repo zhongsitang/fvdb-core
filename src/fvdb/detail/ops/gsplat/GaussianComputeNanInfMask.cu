@@ -30,36 +30,36 @@ computeNanInfMaskKernel(int64_t localToGlobalOffset,
          x += blockDim.x * gridDim.x) {
         bool valid = true;
         for (auto i = 0; i < means.size(1); i += 1) {
-            if (std::isnan(means[x][i]) || std::isinf(means[x][i])) {
+            if (isnan(means[x][i]) || isinf(means[x][i])) {
                 valid = false;
             }
         }
 
         for (auto i = 0; i < quats.size(1); i += 1) {
-            if (std::isnan(quats[x][i]) || std::isinf(quats[x][i])) {
+            if (isnan(quats[x][i]) || isinf(quats[x][i])) {
                 valid = false;
             }
         }
 
         for (auto i = 0; i < logScales.size(1); i += 1) {
-            if (std::isnan(logScales[x][i]) || std::isinf(logScales[x][i])) {
+            if (isnan(logScales[x][i]) || isinf(logScales[x][i])) {
                 valid = false;
             }
         }
 
-        if (std::isnan(logitOpacities[x]) || std::isinf(logitOpacities[x])) {
+        if (isnan(logitOpacities[x]) || isinf(logitOpacities[x])) {
             valid = false;
         }
 
         for (auto i = 0; i < sh0.size(2); i += 1) {
-            if (std::isnan(sh0[x][0][i]) || std::isinf(sh0[x][0][i])) {
+            if (isnan(sh0[x][0][i]) || isinf(sh0[x][0][i])) {
                 valid = false;
             }
         }
 
         for (auto i = 0; i < shN.size(1); i += 1) {
             for (auto j = 0; j < shN.size(2); j += 1) {
-                if (std::isnan(shN[x][i][j]) || std::isinf(shN[x][i][j])) {
+                if (isnan(shN[x][i][j]) || isinf(shN[x][i][j])) {
                     valid = false;
                 }
             }

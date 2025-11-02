@@ -336,8 +336,8 @@ Viewer::cameraNear(const std::string &scene_name) {
     return mEditor.camera.config.near_plane;
 }
 void
-Viewer::setCameraNear(const std::string &scene_name, float near) {
-    mEditor.camera.config.near_plane = near;
+Viewer::setCameraNear(const std::string &scene_name, float near_plane) {
+    mEditor.camera.config.near_plane = near_plane;
     updateCamera(scene_name);
 }
 
@@ -347,8 +347,8 @@ Viewer::cameraFar(const std::string &scene_name) {
     return mEditor.camera.config.far_plane;
 }
 void
-Viewer::setCameraFar(const std::string &scene_name, float far) {
-    mEditor.camera.config.far_plane = far;
+Viewer::setCameraFar(const std::string &scene_name, float far_plane) {
+    mEditor.camera.config.far_plane = far_plane;
     updateCamera(scene_name);
 }
 

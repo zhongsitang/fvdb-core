@@ -39,6 +39,7 @@ define.FVDB_BUILD_TESTS = false
 define.FVDB_BUILD_BENCHMARKS = false
 define.FVDB_INSTALL_DEV = false
 define.CMAKE_BUILD_TYPE = "Release"
+args = ["-G", "Ninja"]
 
 [tool.scikit-build.install]
 components = ["PythonModule"]

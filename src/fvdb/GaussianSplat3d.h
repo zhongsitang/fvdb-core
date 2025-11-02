@@ -11,6 +11,13 @@
 #include <c10/core/Device.h>
 #include <torch/types.h>
 
+#ifdef near
+#undef near
+#endif
+#ifdef far
+#undef far
+#endif
+
 namespace fvdb {
 
 /// @brief A class representing a Gaussian splat scene in 3D space.

@@ -13,6 +13,11 @@ project(${SKBUILD_PROJECT_NAME} VERSION ${SKBUILD_PROJECT_VERSION} LANGUAGES CXX
 
 find_package(Python3 COMPONENTS Development Interpreter)
 
+if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES AND NOT DEFINED ENV{CUDAARCHS})
+    set(CMAKE_CUDA_ARCHITECTURES native CACHE STRING "CUDA architectures to build for" FORCE)
+endif()
+
+message(STATUS "CMAKE_CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
 message(STATUS "CMAKE_BUILD_PARALLEL_LEVEL: $ENV{CMAKE_BUILD_PARALLEL_LEVEL}")
 message(STATUS "NVCC_THREADS: $ENV{NVCC_THREADS}")
 
@@ -66,23 +71,27 @@ set_target_properties(_Cpp PROPERTIES
 
 target_include_directories(_Cpp PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${TORCH_INCLUDE_DIRS}
     ${nanovdb_SOURCE_DIR}/nanovdb
     ${NANOVDB_EDITOR_INCLUDE_DIR})
-target_link_libraries(_Cpp PRIVATE
-    ${TORCH_PYTHON_LIBRARY}
-    ${TORCH_LIBRARIES}
-    fvdb)
+target_link_libraries(_Cpp PRIVATE Torch::Torch fvdb)
 
 target_compile_options(_Cpp PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:
-    #"-Wno-unused-variable"
-    "-fvisibility=hidden"
-    "-fvisibility-inlines-hidden"
-    "-Wall"
-    "-Werror"
-    "${TORCH_CXX_FLAGS}"
-    >)
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+            -Wno-unused-variable
+            -fvisibility=hidden
+            -fvisibility-inlines-hidden
+            -Wall
+            -Werror
+        >
+        $<$<CXX_COMPILER_ID:MSVC>:
+            /DNOMINMAX
+            /D_CRT_SECURE_NO_WARNINGS
+            /FIport.h
+            /Zc:__cplusplus
+        >
+    >
+)
 
 target_compile_definitions(_Cpp PRIVATE
     TORCH_EXTENSION_NAME=_Cpp

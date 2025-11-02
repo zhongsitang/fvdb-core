@@ -55,10 +55,12 @@ checkInputs(const torch::Device device,
             const std::optional<torch::Tensor> &mask) {
     TORCH_CHECK(size[0] > 0 && size[1] > 0 && size[2] > 0,
                 "Size must be greater than 0 in all dimensions");
-    TORCH_CHECK((__uint128_t)size[0] * size[1] * size[2] <= std::numeric_limits<int64_t>::max(),
+    auto safe_mul = [](int64_t a, int64_t b) -> bool {
+        return b == 0 || a <= std::numeric_limits<int64_t>::max() / b;
+    };
+    TORCH_CHECK(safe_mul(size[0], size[1]) && safe_mul(size[0] * size[1], size[2]),
                 "Size of dense grid exceeds the number of voxels supported by a GridBatch");
-    TORCH_CHECK((__uint128_t)size[0] * size[1] * size[2] * batchSize <=
-                    std::numeric_limits<int64_t>::max(),
+    TORCH_CHECK(safe_mul(size[0] * size[1] * size[2], batchSize),
                 "Size and batch size exceed the number of voxels supported by a GridBatch");
     if (mask.has_value()) {
         TORCH_CHECK(mask.value().device() == device,

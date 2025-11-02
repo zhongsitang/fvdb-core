@@ -20,6 +20,30 @@
 #define __restrict__
 #endif
 
+#if defined(_MSC_VER)
+struct CUstream_st;
+using cudaStream_t = CUstream_st*;
+
+namespace nanovdb {
+template <typename BufferT>
+inline GridHandle<BufferT>
+mergeGrids(const std::vector<GridHandle<BufferT>> &handles, const BufferT *pool = nullptr) {
+    return ::nanovdb::mergeGrids<BufferT, std::vector>(handles, pool);
+}
+
+namespace cuda {
+template <typename BufferT>
+inline typename ::nanovdb::util::enable_if<::nanovdb::BufferTraits<BufferT>::hasDeviceDual,
+                                           ::nanovdb::GridHandle<BufferT>>::type
+mergeGridHandles(const std::vector<::nanovdb::GridHandle<BufferT>> &handles,
+                 const BufferT *other = nullptr,
+                 cudaStream_t stream  = 0) {
+    return ::nanovdb::cuda::mergeGridHandles<BufferT, std::vector>(handles, other, stream);
+}
+} // namespace cuda
+} // namespace nanovdb
+#endif
+
 namespace fvdb {
 namespace detail {
 
