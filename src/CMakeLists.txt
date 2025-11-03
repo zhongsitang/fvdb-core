@@ -194,8 +194,6 @@ target_compile_options(fvdb PRIVATE
         >
         $<$<CXX_COMPILER_ID:MSVC>:
             /DNANOVDB_USE_BLOSC
-            /DNOMINMAX
-            /D_CRT_SECURE_NO_WARNINGS
             /FIport.h
             /Zc:__cplusplus
         >
@@ -214,8 +212,6 @@ target_compile_options(fvdb PRIVATE
             -fvisibility=default
         >
         $<$<CXX_COMPILER_ID:MSVC>:
-            -D__asm__=asm
-            -D__volatile__=volatile
             -include Port.h
             -Xcompiler=/Zc:__cplusplus
         >

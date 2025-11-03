@@ -85,8 +85,6 @@ target_compile_options(_Cpp PRIVATE
             -Werror
         >
         $<$<CXX_COMPILER_ID:MSVC>:
-            /DNOMINMAX
-            /D_CRT_SECURE_NO_WARNINGS
             /FIport.h
             /Zc:__cplusplus
         >

@@ -86,8 +86,6 @@ function(ConfigureTest CMAKE_TEST_NAME)
               -Werror
           >
           $<$<CXX_COMPILER_ID:MSVC>:
-              /DNOMINMAX
-              /D_CRT_SECURE_NO_WARNINGS
               /FIport.h
           >
       >
